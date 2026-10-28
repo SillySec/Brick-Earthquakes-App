@@ -1,6 +1,16 @@
 package com.example.brickearthquakesapp.ui
 
+import android.Manifest
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
 import android.text.format.DateUtils
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,25 +32,76 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.brickearthquakesapp.R
 import com.example.brickearthquakesapp.data.RefreshError
 import com.example.brickearthquakesapp.ui.list.EarthquakeList
 
-/** Connects the ViewModel to the stateless [EarthquakesScreen]. */
+/**
+ * Connects the ViewModel to the stateless [EarthquakesScreen]. Everything that touches the
+ * Android permission system lives here, in the UI layer: the ViewModel only hears the outcome.
+ */
 @Composable
 fun EarthquakesRoute(viewModel: EarthquakesViewModel, modifier: Modifier = Modifier) {
     // Stops collecting when the app is in the background, resumes when it returns.
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        // After a denial, "should show rationale" is true if Android will still show the dialog
+        // next time, false if the user chose "don't ask again" (the only way out is app settings).
+        val canRequestAgain = !granted && context.findActivity()?.let {
+            ActivityCompat.shouldShowRequestPermissionRationale(it, LOCATION_PERMISSION)
+        } == true
+        viewModel.onLocationPermissionResult(granted, canRequestAgain)
+    }
+
+    // Coming back from the system settings screen: pick up a permission granted there.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        if (state.locationStatus is LocationStatus.PermissionDenied && context.hasLocationPermission()) {
+            viewModel.refreshLocation()
+        }
+    }
+
     EarthquakesScreen(
         state = state,
         onRefresh = viewModel::refresh,
         onDismissError = viewModel::dismissError,
+        // Only ever called from a button tap, so the dialog is never shown unprompted.
+        onUseLocation = {
+            if (context.hasLocationPermission()) {
+                viewModel.refreshLocation()
+            } else {
+                permissionLauncher.launch(LOCATION_PERMISSION)
+            }
+        },
+        onOpenAppSettings = {
+            context.startActivity(
+                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null)),
+            )
+        },
         modifier = modifier,
     )
+}
+
+// Approximate location only: no fine or background access is requested.
+private const val LOCATION_PERMISSION = Manifest.permission.ACCESS_COARSE_LOCATION
+
+private fun Context.hasLocationPermission() =
+    ContextCompat.checkSelfPermission(this, LOCATION_PERMISSION) == PackageManager.PERMISSION_GRANTED
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,6 +110,8 @@ fun EarthquakesScreen(
     state: EarthquakesUiState,
     onRefresh: () -> Unit,
     onDismissError: () -> Unit,
+    onUseLocation: () -> Unit,
+    onOpenAppSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -98,7 +161,16 @@ fun EarthquakesScreen(
                             onDismiss = onDismissError,
                         )
                     }
-                    EarthquakeList(earthquakes = state.earthquakes, modifier = Modifier.weight(1f))
+                    LocationPrompt(
+                        status = state.locationStatus,
+                        onUseLocation = onUseLocation,
+                        onOpenAppSettings = onOpenAppSettings,
+                    )
+                    EarthquakeList(
+                        earthquakes = state.earthquakes,
+                        distancesMiles = state.distancesMiles,
+                        modifier = Modifier.weight(1f),
+                    )
                 }
             }
         }

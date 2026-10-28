@@ -16,7 +16,7 @@ class MainActivity : ComponentActivity() {
     private val viewModel: EarthquakesViewModel by viewModels {
         val container = (application as BrickApp).container
         viewModelFactory {
-            initializer { EarthquakesViewModel(container.earthquakeRepository) }
+            initializer { EarthquakesViewModel(container.earthquakeRepository, container.locationProvider) }
         }
     }
 

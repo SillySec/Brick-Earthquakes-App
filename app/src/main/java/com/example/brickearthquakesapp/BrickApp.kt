@@ -8,6 +8,8 @@ import com.example.brickearthquakesapp.data.EarthquakeRepository
 import com.example.brickearthquakesapp.data.local.AppDatabase
 import com.example.brickearthquakesapp.data.remote.UsgsApi
 import com.example.brickearthquakesapp.data.remote.UsgsJson
+import com.example.brickearthquakesapp.location.FusedLocationProvider
+import com.example.brickearthquakesapp.location.LocationProvider
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -44,6 +46,8 @@ class AppContainer(context: Context) {
             .build()
             .create(UsgsApi::class.java)
     }
+
+    val locationProvider: LocationProvider by lazy { FusedLocationProvider(appContext) }
 
     val earthquakeRepository: EarthquakeRepository by lazy {
         DefaultEarthquakeRepository(api, database.earthquakeDao())

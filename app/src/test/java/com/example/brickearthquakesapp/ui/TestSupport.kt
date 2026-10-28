@@ -1,12 +1,16 @@
 package com.example.brickearthquakesapp.ui
 
 import com.example.brickearthquakesapp.data.EarthquakeRepository
+import com.example.brickearthquakesapp.location.LocationProvider
+import com.example.brickearthquakesapp.location.LocationResult
 import com.example.brickearthquakesapp.model.Earthquake
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestDispatcher
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
@@ -36,6 +40,32 @@ fun earthquake(id: String, timeMillis: Long = 0L) = Earthquake(
     alert = null,
     significance = null,
 )
+
+/** Defaults to "permission not granted", i.e. the state of a fresh install. */
+class FakeLocationProvider : LocationProvider {
+    var permissionGranted = false
+    var onLookup: suspend () -> LocationResult = { LocationResult.PermissionMissing }
+    var lookups = 0
+        private set
+
+    override fun isPermissionGranted() = permissionGranted
+
+    override suspend fun currentLocation(): LocationResult {
+        lookups++
+        return onLookup()
+    }
+}
+
+/** uiState uses WhileSubscribed, so something has to collect it for the state to update. */
+@OptIn(ExperimentalCoroutinesApi::class)
+fun TestScope.createViewModel(
+    repository: EarthquakeRepository,
+    locationProvider: LocationProvider = FakeLocationProvider(),
+): EarthquakesViewModel {
+    val viewModel = EarthquakesViewModel(repository, locationProvider)
+    backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
+    return viewModel
+}
 
 /**
  * The cache is a state flow so the ViewModel sees it immediately, like Room. [onRefresh]

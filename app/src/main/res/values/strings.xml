@@ -22,4 +22,14 @@
     <string name="unknown_location">Unknown location</string>
     <string name="magnitude_label">Magnitude %1$s</string>
     <string name="depth_label">Depth %1$s</string>
+    <string name="distance_away">%1$s away</string>
+
+    <string name="location_prompt_body">Share your approximate location to see how far each earthquake is from you.</string>
+    <string name="location_action_use">Use my location</string>
+    <string name="location_action_settings">Open settings</string>
+    <string name="location_loading">Finding your location…</string>
+    <string name="location_denied">Location permission is off, so distances are hidden.</string>
+    <string name="location_denied_settings">Location permission is off. You can allow it in the app settings to see distances.</string>
+    <string name="location_services_disabled">Location is turned off on this device, so distances are hidden.</string>
+    <string name="location_unavailable">Couldn\'t determine your location, so distances are hidden.</string>
 </resources>

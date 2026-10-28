@@ -5,9 +5,7 @@ import com.example.brickearthquakesapp.ui.EarthquakesUiState.Content
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -26,12 +24,7 @@ class EarthquakesViewModelTest {
     private val cached = listOf(earthquake("a", 2L), earthquake("b", 1L))
     private val networkError = RefreshError.Network(IOException("offline"))
 
-    /** uiState uses WhileSubscribed, so something has to collect it for the state to update. */
-    private fun TestScope.viewModel(repository: FakeEarthquakeRepository): EarthquakesViewModel {
-        val viewModel = EarthquakesViewModel(repository)
-        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
-        return viewModel
-    }
+    private fun TestScope.viewModel(repository: FakeEarthquakeRepository) = createViewModel(repository)
 
     @Test
     fun showsLoadingWhileCacheIsEmptyAndFirstRefreshIsRunning() = runTest {

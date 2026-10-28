@@ -27,6 +27,23 @@ class EarthquakeFormattersTest {
     }
 
     @Test
+    fun shortDistancesKeepOneDecimal() {
+        assertEquals("0.0 mi", formatDistanceMiles(0.0, Locale.US))
+        assertEquals("0.0 mi", formatDistanceMiles(0.04, Locale.US))
+        assertEquals("4.3 mi", formatDistanceMiles(4.26, Locale.US))
+        assertEquals("9.9 mi", formatDistanceMiles(9.94, Locale.US))
+    }
+
+    @Test
+    fun longerDistancesAreWholeMilesWithGrouping() {
+        assertEquals("10 mi", formatDistanceMiles(9.96, Locale.US)) // would round up to 10.0
+        assertEquals("12 mi", formatDistanceMiles(12.4, Locale.US))
+        assertEquals("13 mi", formatDistanceMiles(12.5, Locale.US))
+        assertEquals("1,235 mi", formatDistanceMiles(1234.6, Locale.US))
+        assertEquals("12,437 mi", formatDistanceMiles(12436.8, Locale.US))
+    }
+
+    @Test
     fun eventTimeUsesTheRequestedZone() {
         // 2023-11-14T22:13:20Z
         val millis = 1_700_000_000_000L
