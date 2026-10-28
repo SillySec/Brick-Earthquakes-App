@@ -11,6 +11,7 @@ import android.provider.Settings
 import android.text.format.DateUtils
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,12 +25,18 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -44,6 +51,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.brickearthquakesapp.R
 import com.example.brickearthquakesapp.data.RefreshError
 import com.example.brickearthquakesapp.ui.list.EarthquakeList
+import com.example.brickearthquakesapp.ui.map.EarthquakeMap
+import com.example.brickearthquakesapp.ui.map.rememberWorldCameraPositionState
 
 /**
  * Connects the ViewModel to the stateless [EarthquakesScreen]. Everything that touches the
@@ -114,6 +123,11 @@ fun EarthquakesScreen(
     onOpenAppSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // Purely presentational, so it lives in the UI rather than the ViewModel. Saved across
+    // rotation; the map camera is hoisted here so it also survives switching to the list and back.
+    var viewMode by rememberSaveable { mutableStateOf(ViewMode.LIST) }
+    val cameraPositionState = rememberWorldCameraPositionState()
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
@@ -152,6 +166,7 @@ fun EarthquakesScreen(
                     if (state.isRefreshing) {
                         LinearProgressIndicator(Modifier.fillMaxWidth())
                     }
+                    ViewModeToggle(selected = viewMode, onSelect = { viewMode = it })
                     val error = state.refreshError
                     if (error != null) {
                         StaleDataBanner(
@@ -161,17 +176,48 @@ fun EarthquakesScreen(
                             onDismiss = onDismissError,
                         )
                     }
-                    LocationPrompt(
-                        status = state.locationStatus,
-                        onUseLocation = onUseLocation,
-                        onOpenAppSettings = onOpenAppSettings,
-                    )
-                    EarthquakeList(
-                        earthquakes = state.earthquakes,
-                        distancesMiles = state.distancesMiles,
-                        modifier = Modifier.weight(1f),
-                    )
+                    // Same cached events either way; switching never touches the network.
+                    when (viewMode) {
+                        ViewMode.LIST -> {
+                            LocationPrompt(
+                                status = state.locationStatus,
+                                onUseLocation = onUseLocation,
+                                onOpenAppSettings = onOpenAppSettings,
+                            )
+                            EarthquakeList(
+                                earthquakes = state.earthquakes,
+                                distancesMiles = state.distancesMiles,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                        ViewMode.MAP -> EarthquakeMap(
+                            earthquakes = state.earthquakes,
+                            cameraPositionState = cameraPositionState,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
                 }
+            }
+        }
+    }
+}
+
+private enum class ViewMode(@param:StringRes val label: Int) {
+    LIST(R.string.view_list),
+    MAP(R.string.view_map),
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ViewModeToggle(selected: ViewMode, onSelect: (ViewMode) -> Unit, modifier: Modifier = Modifier) {
+    SingleChoiceSegmentedButtonRow(modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+        ViewMode.entries.forEachIndexed { index, mode ->
+            SegmentedButton(
+                selected = mode == selected,
+                onClick = { onSelect(mode) },
+                shape = SegmentedButtonDefaults.itemShape(index, ViewMode.entries.size),
+            ) {
+                Text(stringResource(mode.label))
             }
         }
     }

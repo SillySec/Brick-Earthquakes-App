@@ -24,6 +24,12 @@
     <string name="depth_label">Depth %1$s</string>
     <string name="distance_away">%1$s away</string>
 
+    <string name="view_list">List</string>
+    <string name="view_map">Map</string>
+    <string name="map_marker_snippet">Magnitude %1$s · %2$s</string>
+    <string name="map_unavailable_title">Map unavailable</string>
+    <string name="map_unavailable_body">This build has no Google Maps API key. Add MAPS_API_KEY to local.properties and rebuild. The list view works without it.</string>
+
     <string name="location_prompt_body">Share your approximate location to see how far each earthquake is from you.</string>
     <string name="location_action_use">Use my location</string>
     <string name="location_action_settings">Open settings</string>

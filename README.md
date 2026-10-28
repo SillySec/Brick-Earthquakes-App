@@ -1,5 +1,28 @@
 # Brick-Earthquakes-App
 
+## Map and Google Maps API key
+
+The Map tab uses Google Maps (Maps Compose) and needs a **Maps SDK for Android** API key.
+The key is never committed:
+
+1. In the Google Cloud console, create a project, enable **Maps SDK for Android**, and create
+   an API key (restricting it to package `com.example.brickearthquakesapp` plus your debug
+   keystore's SHA-1 is recommended).
+2. Add this line to `local.properties` in the project root (the file is git-ignored):
+   ```
+   MAPS_API_KEY=your-key-here
+   ```
+   Alternatively set a `MAPS_API_KEY` environment variable before building.
+3. Rebuild and run. Gradle injects the key into the manifest as a placeholder at build time.
+
+Without a key the app still builds and the list works fully; the Map tab shows a "Map
+unavailable" message instead. Use an emulator image that includes Google Play services.
+A key that is present but invalid or restricted incorrectly produces a blank map rather than
+that message (Google logs the authorization error in Logcat).
+
+The map shows the same cached earthquakes as the list, opens on a world view, and does not use
+or request the device location.
+
 ## Location (optional)
 
 Location is an optional extra. The earthquake list, refresh and offline cache work the same
