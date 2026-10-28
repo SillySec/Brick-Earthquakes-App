@@ -1,3 +1,25 @@
 <resources>
     <string name="app_name">Brick Earthquakes App</string>
+
+    <string name="screen_title">Earthquakes</string>
+    <string name="action_refresh">Refresh</string>
+    <string name="action_retry">Try again</string>
+    <string name="action_dismiss">Dismiss</string>
+
+    <string name="loading">Loading earthquakes…</string>
+    <string name="empty_title">No earthquakes found</string>
+    <string name="empty_body">USGS reported no magnitude 2.5+ events in the past week.</string>
+    <string name="no_data_title">No earthquake data yet</string>
+    <string name="no_data_body">Tap Refresh to download the latest earthquakes.</string>
+    <string name="error_title">Couldn\'t load earthquakes</string>
+
+    <string name="error_network">No connection to USGS.</string>
+    <string name="error_http">USGS returned an error (HTTP %1$d).</string>
+    <string name="error_parse">USGS sent data the app couldn\'t read.</string>
+    <string name="error_unknown">Something went wrong.</string>
+
+    <string name="stale_banner">%1$s Showing data from %2$s.</string>
+    <string name="unknown_location">Unknown location</string>
+    <string name="magnitude_label">Magnitude %1$s</string>
+    <string name="depth_label">Depth %1$s</string>
 </resources>
