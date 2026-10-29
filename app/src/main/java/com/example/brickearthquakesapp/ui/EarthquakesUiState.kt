@@ -44,6 +44,21 @@ data class EarthquakesUiState(
     val userLocation: UserLocation?
         get() = (locationStatus as? LocationStatus.Available)?.location
 
+    /**
+     * The current data for a selected event. The UI keeps only the id, so a refresh that
+     * changes the event is reflected immediately and one that removes it yields null.
+     */
+    fun earthquakeById(id: String?): Earthquake? =
+        if (id == null) null else earthquakes.firstOrNull { it.id == id }
+
+    /**
+     * True when a remembered selection should be dropped because the event is gone. Never true
+     * before the cache has loaded: an empty list then means "not loaded yet" (for example
+     * right after the process was restored), not "removed".
+     */
+    fun isSelectionStale(id: String?): Boolean =
+        id != null && cacheLoaded && earthquakes.none { it.id == id }
+
     enum class Content {
         /** Nothing to show yet; waiting for the cache or the first download. */
         Loading,

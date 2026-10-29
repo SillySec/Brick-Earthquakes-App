@@ -44,6 +44,22 @@ class EarthquakeFormattersTest {
     }
 
     @Test
+    fun coordinatesUseHemisphereLettersInsteadOfSigns() {
+        assertEquals("37.8000° N, 122.5000° W", formatCoordinates(37.8, -122.5, Locale.US))
+        assertEquals("33.8688° S, 151.2093° E", formatCoordinates(-33.8688, 151.2093, Locale.US))
+    }
+
+    @Test
+    fun coordinatesAtZeroAreNorthAndEast() {
+        assertEquals("0.0000° N, 0.0000° E", formatCoordinates(0.0, 0.0, Locale.US))
+    }
+
+    @Test
+    fun coordinatesAreRoundedToFourDecimals() {
+        assertEquals("10.1235° N, 20.0000° E", formatCoordinates(10.123456, 19.99999, Locale.US))
+    }
+
+    @Test
     fun eventTimeUsesTheRequestedZone() {
         // 2023-11-14T22:13:20Z
         val millis = 1_700_000_000_000L

@@ -3,6 +3,9 @@ package com.example.brickearthquakesapp.ui
 import com.example.brickearthquakesapp.data.RefreshError
 import com.example.brickearthquakesapp.ui.EarthquakesUiState.Content
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.IOException
 
@@ -55,5 +58,47 @@ class EarthquakesUiStateTest {
     @Test
     fun noDataWhenNothingIsCachedAndNothingWasConfirmed() {
         assertEquals(Content.NoData, EarthquakesUiState(cacheLoaded = true).content)
+    }
+
+    @Test
+    fun selectedEventIsLookedUpFromCurrentDataById() {
+        val before = EarthquakesUiState(listOf(earthquake("a", 1L), earthquake("b", 2L)), cacheLoaded = true)
+        assertEquals(1L, before.earthquakeById("a")?.timeMillis)
+
+        // A refresh changed the event: the same id now resolves to the new data, not a stale copy.
+        val after = EarthquakesUiState(listOf(earthquake("a", 99L)), cacheLoaded = true)
+        assertEquals(99L, after.earthquakeById("a")?.timeMillis)
+    }
+
+    @Test
+    fun noSelectionOrUnknownIdResolvesToNull() {
+        val state = EarthquakesUiState(data, cacheLoaded = true)
+
+        assertNull(state.earthquakeById(null))
+        assertNull(state.earthquakeById("not-in-feed"))
+    }
+
+    @Test
+    fun selectionIsStaleOnlyWhenTheLoadedCacheNoLongerHasIt() {
+        val loaded = EarthquakesUiState(data, cacheLoaded = true)
+
+        assertFalse(loaded.isSelectionStale("a"))
+        assertTrue(loaded.isSelectionStale("removed-by-refresh"))
+        assertFalse("nothing selected, nothing to clear", loaded.isSelectionStale(null))
+    }
+
+    @Test
+    fun selectionIsNotDroppedBeforeTheCacheHasLoaded() {
+        // E.g. after process death: the saved id is restored while the list is still empty.
+        val notLoadedYet = EarthquakesUiState(cacheLoaded = false)
+
+        assertFalse(notLoadedYet.isSelectionStale("a"))
+    }
+
+    @Test
+    fun selectionIsStaleWhenAnEmptyFeedReplacesTheCache() {
+        val emptied = EarthquakesUiState(emptyList(), cacheLoaded = true, feedConfirmed = true)
+
+        assertTrue(emptied.isSelectionStale("a"))
     }
 }

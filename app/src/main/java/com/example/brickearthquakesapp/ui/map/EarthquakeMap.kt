@@ -20,8 +20,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.brickearthquakesapp.R
 import com.example.brickearthquakesapp.model.Earthquake
-import com.example.brickearthquakesapp.ui.formatEventTime
-import com.example.brickearthquakesapp.ui.formatMagnitude
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.CameraPositionState
@@ -45,7 +43,6 @@ private class MarkerData(
     val id: String,
     val position: LatLng,
     val title: String,
-    val snippet: String,
 )
 
 /**
@@ -56,6 +53,7 @@ private class MarkerData(
 fun EarthquakeMap(
     earthquakes: List<Earthquake>,
     cameraPositionState: CameraPositionState,
+    onEarthquakeClick: (id: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -75,11 +73,6 @@ fun EarthquakeMap(
                 id = it.id,
                 position = LatLng(it.latitude, it.longitude),
                 title = it.place ?: context.getString(R.string.unknown_location),
-                snippet = context.getString(
-                    R.string.map_marker_snippet,
-                    formatMagnitude(it.magnitude),
-                    formatEventTime(it.timeMillis),
-                ),
             )
         }
     }
@@ -92,8 +85,14 @@ fun EarthquakeMap(
             key(marker.id) {
                 Marker(
                     state = rememberUpdatedMarkerState(position = marker.position),
-                    title = marker.title,
-                    snippet = marker.snippet,
+                    title = marker.title, // kept for accessibility; the info window is not shown
+                    onClick = {
+                        onEarthquakeClick(marker.id)
+                        // true = handled: the SDK then skips its default behavior of showing the
+                        // info window and animating the camera to the marker, so the camera
+                        // stays exactly where the user left it.
+                        true
+                    },
                 )
             }
         }

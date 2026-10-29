@@ -5,6 +5,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
+import kotlin.math.abs
 
 /** "4.5", or "–" when USGS has not published a magnitude yet. */
 fun formatMagnitude(magnitude: Double?): String =
@@ -13,6 +14,17 @@ fun formatMagnitude(magnitude: Double?): String =
 /** "10.2 km" */
 fun formatDepth(depthKm: Double, locale: Locale = Locale.getDefault()): String =
     String.format(locale, "%.1f km", depthKm)
+
+/** "37.8000° N, 122.5000° W": unsigned degrees with a hemisphere letter, easier to read than signs. */
+fun formatCoordinates(latitude: Double, longitude: Double, locale: Locale = Locale.getDefault()): String =
+    String.format(
+        locale,
+        "%.4f° %s, %.4f° %s",
+        abs(latitude),
+        if (latitude >= 0) "N" else "S",
+        abs(longitude),
+        if (longitude >= 0) "E" else "W",
+    )
 
 /**
  * "4.3 mi" below 10 miles, otherwise whole miles with grouping ("1,235 mi"), so short

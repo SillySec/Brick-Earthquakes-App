@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -50,6 +51,7 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.brickearthquakesapp.R
 import com.example.brickearthquakesapp.data.RefreshError
+import com.example.brickearthquakesapp.ui.detail.EarthquakeDetailSheet
 import com.example.brickearthquakesapp.ui.list.EarthquakeList
 import com.example.brickearthquakesapp.ui.map.EarthquakeMap
 import com.example.brickearthquakesapp.ui.map.rememberWorldCameraPositionState
@@ -128,6 +130,16 @@ fun EarthquakesScreen(
     var viewMode by rememberSaveable { mutableStateOf(ViewMode.LIST) }
     val cameraPositionState = rememberWorldCameraPositionState()
 
+    // The one selection both the list and the map write to. Only the id is kept (and saved
+    // across rotation); the sheet always shows the current data for that id.
+    var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
+    val selectedEarthquake = state.earthquakeById(selectedId)
+    // A refresh removed the selected event: forget it, so it cannot pop back open if the
+    // event reappears in a later feed. The sheet itself already closed (selectedEarthquake is null).
+    LaunchedEffect(selectedId, state.earthquakes, state.cacheLoaded) {
+        if (state.isSelectionStale(selectedId)) selectedId = null
+    }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
@@ -187,18 +199,29 @@ fun EarthquakesScreen(
                             EarthquakeList(
                                 earthquakes = state.earthquakes,
                                 distancesMiles = state.distancesMiles,
+                                onEarthquakeClick = { selectedId = it },
                                 modifier = Modifier.weight(1f),
                             )
                         }
                         ViewMode.MAP -> EarthquakeMap(
                             earthquakes = state.earthquakes,
                             cameraPositionState = cameraPositionState,
+                            onEarthquakeClick = { selectedId = it },
                             modifier = Modifier.weight(1f),
                         )
                     }
                 }
             }
         }
+    }
+
+    // One sheet for both views, outside the list/map switch, so there is never a duplicate.
+    if (selectedEarthquake != null) {
+        EarthquakeDetailSheet(
+            earthquake = selectedEarthquake,
+            distanceMiles = state.distancesMiles[selectedEarthquake.id],
+            onDismiss = { selectedId = null },
+        )
     }
 }
 

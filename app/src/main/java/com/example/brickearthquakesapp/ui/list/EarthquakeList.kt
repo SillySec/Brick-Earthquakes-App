@@ -2,6 +2,7 @@ package com.example.brickearthquakesapp.ui.list
 
 import android.text.format.DateUtils
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,19 +38,29 @@ import com.example.brickearthquakesapp.ui.formatMagnitude
 fun EarthquakeList(
     earthquakes: List<Earthquake>,
     distancesMiles: Map<String, Double>,
+    onEarthquakeClick: (id: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(modifier = modifier) {
         // The USGS id is stable across refreshes, so rows keep their identity when data changes.
         items(items = earthquakes, key = { it.id }) { earthquake ->
-            EarthquakeRow(earthquake, distanceMiles = distancesMiles[earthquake.id])
+            EarthquakeRow(
+                earthquake = earthquake,
+                distanceMiles = distancesMiles[earthquake.id],
+                onClick = { onEarthquakeClick(earthquake.id) },
+            )
             HorizontalDivider()
         }
     }
 }
 
 @Composable
-private fun EarthquakeRow(earthquake: Earthquake, distanceMiles: Double?, modifier: Modifier = Modifier) {
+private fun EarthquakeRow(
+    earthquake: Earthquake,
+    distanceMiles: Double?,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val magnitude = formatMagnitude(earthquake.magnitude)
     val relativeTime = DateUtils.getRelativeTimeSpanString(
         earthquake.timeMillis,
@@ -57,7 +68,9 @@ private fun EarthquakeRow(earthquake: Earthquake, distanceMiles: Double?, modifi
         DateUtils.MINUTE_IN_MILLIS,
     )
     Row(
+        // clickable comes before padding so the ripple and touch target cover the whole row.
         modifier = modifier
+            .clickable(onClickLabel = stringResource(R.string.action_view_details), onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

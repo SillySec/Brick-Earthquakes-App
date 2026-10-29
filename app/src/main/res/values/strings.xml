@@ -26,7 +26,12 @@
 
     <string name="view_list">List</string>
     <string name="view_map">Map</string>
-    <string name="map_marker_snippet">Magnitude %1$s · %2$s</string>
+    <string name="action_view_details">View details</string>
+    <string name="detail_magnitude">Magnitude</string>
+    <string name="detail_time">Time</string>
+    <string name="detail_depth">Depth</string>
+    <string name="detail_coordinates">Coordinates</string>
+    <string name="detail_distance">Distance from you</string>
     <string name="map_unavailable_title">Map unavailable</string>
     <string name="map_unavailable_body">This build has no Google Maps API key. Add MAPS_API_KEY to local.properties and rebuild. The list view works without it.</string>
 
