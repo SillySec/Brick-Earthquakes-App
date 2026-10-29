@@ -33,8 +33,8 @@ class FusedLocationProvider(context: Context) : LocationProvider {
             return LocationResult.ServicesDisabled
         }
 
-        // Accepts a fix up to 5 minutes old and gives up after 10 seconds, so the request is
-        // cheap and cannot hang. One request, no continuous updates.
+        // Accepts a cached fix up to 5 minutes old and requests a location
+        // with an approximately 10-second duration limit.
         val request = CurrentLocationRequest.Builder()
             .setPriority(Priority.PRIORITY_BALANCED_POWER_ACCURACY)
             .setMaxUpdateAgeMillis(MAX_AGE_MILLIS)

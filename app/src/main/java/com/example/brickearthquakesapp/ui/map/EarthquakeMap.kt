@@ -67,12 +67,13 @@ fun EarthquakeMap(
     // Built once per data change rather than on every recomposition. Earthquake stores
     // latitude and longitude separately (the GeoJSON [lon, lat, depth] order is handled in
     // the mapper), and LatLng takes latitude first.
-    val markers = remember(earthquakes) {
+    val unknownLocation = stringResource(R.string.unknown_location)
+    val markers = remember(earthquakes, unknownLocation) {
         earthquakes.map {
             MarkerData(
                 id = it.id,
                 position = LatLng(it.latitude, it.longitude),
-                title = it.place ?: context.getString(R.string.unknown_location),
+                title = it.place ?: unknownLocation,
             )
         }
     }
