@@ -1,14 +1,14 @@
 package com.example.brickearthquakesapp.data
 
-import com.example.brickearthquakesapp.data.remote.UsgsJson
 import com.example.brickearthquakesapp.data.remote.FeatureCollectionDto
+import com.example.brickearthquakesapp.data.remote.UsgsJson
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

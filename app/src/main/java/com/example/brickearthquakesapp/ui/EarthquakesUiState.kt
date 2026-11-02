@@ -40,7 +40,7 @@ data class EarthquakesUiState(
     /** Miles from the user to each event, keyed by event id. Empty unless the location is known. */
     val distancesMiles: Map<String, Double> = emptyMap(),
 ) {
-    /** Null unless the user's location is known; the map milestone reuses this. */
+    /** The user's location, when available. */
     val userLocation: UserLocation?
         get() = (locationStatus as? LocationStatus.Available)?.location
 

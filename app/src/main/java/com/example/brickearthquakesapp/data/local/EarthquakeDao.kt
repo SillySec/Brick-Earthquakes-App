@@ -28,8 +28,8 @@ abstract class EarthquakeDao {
     protected abstract suspend fun insertAll(earthquakes: List<EarthquakeEntity>)
 
     /**
-     * Swaps the cache contents in one transaction: if the insert fails, the delete is rolled
-     * back and observers never see a half-replaced table. Observers get a single emission.
+     * Replaces the cache atomically. If insertion fails, the deletion is rolled
+     * back, so observers cannot see a partially replaced cache.
      */
     @Transaction
     open suspend fun replaceAll(earthquakes: List<EarthquakeEntity>) {

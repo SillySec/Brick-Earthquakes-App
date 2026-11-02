@@ -61,7 +61,6 @@ private fun EarthquakeRow(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val magnitude = formatMagnitude(earthquake.magnitude)
     val relativeTime = DateUtils.getRelativeTimeSpanString(
         earthquake.timeMillis,
         System.currentTimeMillis(),
